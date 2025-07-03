@@ -56,10 +56,11 @@ def generate_path(num,step, GRID_SIZE):
     real_values=[grid[x][y]for x,y in path]
     for i in range (GRID_SIZE):
         for j in range (GRID_SIZE):
-            if grid[x][y]==0: #if it is still 0, it is a distractor
+            if grid[i][j]==0: #if it is still 0, it is a distractor
                 random_value=random.choice(real_values)
                 distractor_value=random.randint(max(1,random_value-5),random_value+5)
-                grid[x][y]==distractor_value
+                grid[i][j]==distractor_value
+    return grid,path
                 
 
     #we need to have an infinite loop of trying all options before finding the correct one
@@ -79,7 +80,12 @@ def handle_click(x,y):
    
     cell=(x,y)
     if cell==st.session_state.path[st.session_state.current_step]:#if cell is the correct cell to be clicked 
+        st.session_state.selected.add(cell) #we use add and not append because because it is a function of "set of cell"
+        st.session_state.mult_count+=1
 
+        #check if the current step is the last step of the path and congratulate with balloons
+        if st.session_state.current_step==len(st.session_state.path): #--. we are at the end of the path
+            st.balloons()
 
 with st.expander("how to use this app"):
     st.markdown("""
