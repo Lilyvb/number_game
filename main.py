@@ -6,6 +6,12 @@ colors=["#FF5733", "#33FF57", "#3357FF", "#F333FF","#33FFF5", "#FF33F5", "#F5FF3
 if "grid" not in st.session_state:
     st.session_state.num = 1
     st.session_state.mult_count = 10
+if "selected_cells" not in st.session_state:  #keep track of all the cells which are already clicked by the user
+    st.session_state.selected_cells=set()
+if "correct_cells" not in st.session_state:  #keep track of the cells that are correct
+    st.session_state.correct_cells=set()
+if "current_cell" not in st.session_state: #track of which correct cell should the user move next
+    st.session_state.current_cell=0  
     
 
 #to creat the grid side and the path
@@ -59,7 +65,7 @@ def generate_path(num,step, GRID_SIZE):
             if grid[i][j]==0: #if it is still 0, it is a distractor
                 random_value=random.choice(real_values)
                 distractor_value=random.randint(max(1,random_value-5),random_value+5)
-                grid[i][j]==distractor_value
+                grid[i][j]=distractor_value
     return grid,path
                 
 
@@ -73,19 +79,51 @@ with st.sidebar: #what is the number and how many times.
     if st.button("create grid"):
         min_cells_needed=st.session_state.mult_count+10 #(10 is the number of distractors)
         grid_size=math.ceil(math.sqrt(min_cells_needed)) # we look for the next square number to generate a grid. Ex: if the number is 20, this is not a square number so we have to make a grid of 25 (5x5)
+        st.session_state.grid_size=grid_size #No matter the size of the grid we are storing it in a session 
         st.session_state.grid,st.session_state.path=generate_path(st.session_state.num,st.session_state.mult_count,grid_size)
-            
-#to generate a track, we need to 1) check it is valid; 2) we need to backtrack
+        st.session_state.selected_cells=set()
+        st.session_state.correct_cells=set()
+        st.session_state.current_cell=0
+
 def handle_click(x,y):
    
     cell=(x,y)
-    if cell==st.session_state.path[st.session_state.current_step]:#if cell is the correct cell to be clicked 
-        st.session_state.selected.add(cell) #we use add and not append because because it is a function of "set of cell"
-        st.session_state.mult_count+=1
+    if cell in st.session_state.selected_cells:
+        return #if we have already visited a cell, we are not visiting it again and we'll go back to the path
+    st.session_state.selected_cells.add(cell)
+    if cell==st.session_state.path[st.session_state.current_cell]:#if cell is the correct cell to be clicked 
+        st.session_state.correct_cells.add(cell) #we use add and not append because because it is a function of "set of cell"
+        st.session_state.current_cell+=1
 
         #check if the current step is the last step of the path and congratulate with balloons
-        if st.session_state.current_step==len(st.session_state.path): #--. we are at the end of the path
+        if st.session_state.current_cell==len(st.session_state.path): #--. we are at the end of the path
             st.balloons()
+
+if "grid" in st.session_state:
+    st.markdown("### MULTIPLICATION TABLE GRID")
+    grid=st.session_state.grid
+    path=st.session_state.path
+    grid_size=st.session_state.grid_size
+    for i in range(grid_size):  #ERROR HERE 
+        cols=st.columns(grid_size)
+        for j in range(grid_size):
+            value=grid[i][j]
+            cell=(i,j)
+            if cell in st.session_state.correct_cells:
+                color="lightgreen"
+            elif cell in st.session_state.selected_cells:
+                color="red"
+            else:
+                color="grey"
+            if cols[j].button(str(value),key=f"{i}-{j}"):
+                handle_click(i,j)
+            cols[j].markdown(
+                f"""<div style="background-color:{color}; padding: 6px; text-align: center;>{value} </div>""", 
+                unsafe_allow_html=True
+            ) #markdown is to show something in the screen like colors / div is a container where we can put something / f is used when we want the constants and the variables together
+
+            
+#to generate a track, we need to 1) check it is valid; 2) we need to backtrack
 
 with st.expander("how to use this app"):
     st.markdown("""
@@ -97,4 +135,5 @@ if st.button("show solution"):
     st.balloons()
     
 #next time handle click --> line 34
-
+#18/07/2025 we haven't called the handle click functions and we haven't implemented the red and green colours
+#show solution / help 
