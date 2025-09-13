@@ -56,6 +56,9 @@ def generate_path(num,step, GRID_SIZE):
                 x,y=nx,ny
                 placed=True
                 break # we define where x and y have to move, the new position becomes the new n,y and this will go one until break --> line 38 until all the multiples are used
+        if not placed:
+            return generate_path(num,step,GRID_SIZE)
+        
     if x!=GRID_SIZE-1 and y!=GRID_SIZE-1:
         return generate_path(num,step,GRID_SIZE)
     #now we will fill everything with the distractors --> all the grid is fill with 0, then we define the path and now we need to change the remaining 0 have to be changed into distractors
@@ -99,6 +102,20 @@ def handle_click(x,y):
         if st.session_state.current_cell==len(st.session_state.path): #--. we are at the end of the path
             st.balloons()
 
+def display_cell(x,y,value,correct,selected):
+    if correct==True:
+        color="lightgreen"
+    elif selected==True:
+        color="red"
+    else:
+        color="#e0e0e0"
+    st.markdown(
+        f"<div style='background-color: {color};"
+        "border-radius: 8px; padding: 12px; text-align: center; font-size: 18px;'>"
+        f"{value}"
+        "</div>",
+        unsafe_allow_html=True
+    )
 if "grid" in st.session_state:
     st.markdown("### MULTIPLICATION TABLE GRID")
     grid=st.session_state.grid
@@ -109,20 +126,20 @@ if "grid" in st.session_state:
         for j in range(grid_size):
             value=grid[i][j]
             cell=(i,j)
-            if cell in st.session_state.correct_cells:
-                color="lightgreen"
-            elif cell in st.session_state.selected_cells:
-                color="red"
-            else:
-                color="grey"
-            if cols[j].button(str(value),key=f"{i}-{j}"):
-                handle_click(i,j)
-            cols[j].markdown(
-                f"""<div style="background-color:{color}; padding: 6px; text-align: center;>{value} </div>""", 
-                unsafe_allow_html=True
-            ) #markdown is to show something in the screen like colors / div is a container where we can put something / f is used when we want the constants and the variables together
+            correct=cell in st.session_state.correct_cells
+            selected=cell in st.session_state.selected_cells and not correct
+            if correct or selected:
+                with cols[j]:
+                    display_cell(i,j,value,correct,selected)
+            else: 
+                if cols[j].button(str(value),key=f"{i}-{j}"):
+                    handle_click(i,j)
+                    st.rerun()
+    if "path" in st.session_state:
+        if set(st.session_state.path) ==st.session_state.correct_cells and len(st.session_state.path)>0:
+            st.balloons()
 
-            
+                
 #to generate a track, we need to 1) check it is valid; 2) we need to backtrack
 
 with st.expander("how to use this app"):
