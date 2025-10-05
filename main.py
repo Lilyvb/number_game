@@ -91,16 +91,19 @@ with st.sidebar: #what is the number and how many times.
 def handle_click(x,y):
    
     cell=(x,y)
-    if cell in st.session_state.selected_cells:
-        return #if we have already visited a cell, we are not visiting it again and we'll go back to the path
-    st.session_state.selected_cells.add(cell)
     if cell==st.session_state.path[st.session_state.current_cell]:#if cell is the correct cell to be clicked 
         st.session_state.correct_cells.add(cell) #we use add and not append because because it is a function of "set of cell"
         st.session_state.current_cell+=1
+        if cell in st.session_state.selected_cells:
+            st.session_state.selected_cells.remove(cell)
 
         #check if the current step is the last step of the path and congratulate with balloons
         if st.session_state.current_cell==len(st.session_state.path): #--. we are at the end of the path
             st.balloons()
+    else:
+        if cell not in st.session_state.correct_cells:
+            st.session_state.selected_cells.add(cell)
+
 
 def display_cell(x,y,value,correct,selected):
     if correct==True:
@@ -128,13 +131,15 @@ if "grid" in st.session_state:
             cell=(i,j)
             correct=cell in st.session_state.correct_cells
             selected=cell in st.session_state.selected_cells and not correct
-            if correct or selected:
+            if correct:
                 with cols[j]:
                     display_cell(i,j,value,correct,selected)
-            else: 
-                if cols[j].button(str(value),key=f"{i}-{j}"):
-                    handle_click(i,j)
-                    st.rerun()
+            else:
+                with cols[j]:
+                    button_click=cols[j].button(str(value),key=f"{i}-{j}")
+                    if button_click:
+                        handle_click(i,j)
+                        st.rerun()
     if "path" in st.session_state:
         if set(st.session_state.path) ==st.session_state.correct_cells and len(st.session_state.path)>0:
             st.balloons()
