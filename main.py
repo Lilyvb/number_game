@@ -78,7 +78,7 @@ def generate_path(num,step, GRID_SIZE):
 
 with st.sidebar: #what is the number and how many times. 
     st.session_state.num = st.number_input("Enter a number for the multiplication table:", min_value=1, step=1,value=st.session_state.num)
-    st.session_state.mult_count = st.number_input("Enter a number for the multiplication count:", min_value=10, step=1,value=st.session_state.mult_count)
+    st.session_state.mult_count = st.number_input("Enter a number for the multiplication count (max 50):", min_value=10, step=1,value=st.session_state.mult_count)
     if st.button("create grid"):
         min_cells_needed=st.session_state.mult_count+10 #(10 is the number of distractors)
         grid_size=math.ceil(math.sqrt(min_cells_needed)) # we look for the next square number to generate a grid. Ex: if the number is 20, this is not a square number so we have to make a grid of 25 (5x5)
